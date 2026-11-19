@@ -44,3 +44,10 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - 자동 코드 리뷰는 최대 1회, 가장 낮은 강도(`code-review low`)로만 돌린다. 리뷰어를 못 부르면 그 사실만 적고 완료로 본다.
 - 지적 중 스펙의 수용 기준을 깨거나 주 경로가 실제로 깨지는 것만 고친다. 나머지는 `docs/follow-ups/`에 한 줄로 남긴다. 재리뷰는 하지 않는다.
 - 스펙이 요구하지 않은 보안 하드닝·엣지케이스·성능 방어는 범위 밖이다.
+
+# 호스팅 서비스 최신 문서
+
+<!-- managed by add-stack-context -->
+- Supabase: 관련 작업을 시작할 때 https://supabase.com/llms.txt 에서 필요한 문서를 가져오고, 프로젝트가 쓰는 Supabase CLI·클라이언트 버전과 맞춰 본다. 설치된 `supabase` 스킬도 함께 따른다.
+- Vercel: 배포·예약 실행·함수 설정 작업을 시작할 때 https://vercel.com/llms.txt 에서 필요한 문서를 가져오고, 현재 플랜(Hobby) 제한과 맞춰 본다. 설치된 `deploy-to-vercel` 스킬도 함께 따른다.
+<!-- /managed by add-stack-context -->

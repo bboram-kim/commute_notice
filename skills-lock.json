@@ -57,6 +57,14 @@
       "computedHash": "887077084e9eb913e2b9053c946044240ca9d4bc5422c97bf947dff5b1a92ad1",
       "installMode": "copy"
     },
+    "deploy-to-vercel": {
+      "source": "vercel-labs/agent-skills",
+      "commit": "1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62",
+      "sourceType": "github",
+      "skillPath": "skills/deploy-to-vercel/SKILL.md",
+      "computedHash": "66b99dfa063b1c405155e9bffd99c04ca3e312e81b168d540b757bb194b7400a",
+      "installMode": "copy"
+    },
     "explain-visually": {
       "source": "toy-crane/skills",
       "sourceType": "github",
@@ -174,6 +182,14 @@
       "sourceType": "github",
       "skillPath": "skills/workflow/shape-idea/SKILL.md",
       "computedHash": "156a8b4f23b290e12c984784e4e906f79a72ad5826611465ac37ef8354e9d833",
+      "installMode": "copy"
+    },
+    "supabase": {
+      "source": "supabase/agent-skills",
+      "commit": "c9be0e931b7930f7d02126d04774d904c381e7d7",
+      "sourceType": "github",
+      "skillPath": "skills/supabase/SKILL.md",
+      "computedHash": "2fbff32fd63b7d31585cacf0ed43e5bf8d05dd20d6c0c751d256cb967a00eec1",
       "installMode": "copy"
     },
     "tdd": {
