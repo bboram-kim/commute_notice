@@ -5,3 +5,4 @@
 - [ui-composition](ui-composition.md) — Read when choosing UI components, page composition, visual tokens, or custom interface boundaries.
 - [hosting-and-scheduling](hosting-and-scheduling.md) — Read when choosing where the app runs, where data is stored, or how time-based jobs are triggered.
 - [dependency-versions](dependency-versions.md) — Read when upgrading dependencies, pinning versions, or wondering why TypeScript stays on 6.x.
+- [accounts-and-access](accounts-and-access.md) — Read when choosing how users sign up or log in, who may use the service, or how settings, subscriptions and widget access are tied to a user.
