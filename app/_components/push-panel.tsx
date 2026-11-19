@@ -27,7 +27,7 @@ function detectSupport(): Support {
   return "ready";
 }
 
-export function PushPanel({ accessKey }: { accessKey: string }) {
+export function PushPanel() {
   const support = useSyncExternalStore<Support>(
     () => () => {},
     detectSupport,
@@ -67,7 +67,7 @@ export function PushPanel({ accessKey }: { accessKey: string }) {
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!),
       });
-      await subscribePush(accessKey, JSON.parse(JSON.stringify(sub)));
+      await subscribePush(JSON.parse(JSON.stringify(sub)));
       setSubscription(sub);
       setMessage({ tone: "default", text: "이 기기에서 알림을 켰습니다." });
     });
@@ -75,7 +75,7 @@ export function PushPanel({ accessKey }: { accessKey: string }) {
   const disable = () =>
     run(async () => {
       if (!subscription) return;
-      await unsubscribePush(accessKey, subscription.endpoint);
+      await unsubscribePush(subscription.endpoint);
       await subscription.unsubscribe();
       setSubscription(null);
       setMessage({ tone: "default", text: "이 기기의 알림을 껐습니다." });
@@ -83,7 +83,7 @@ export function PushPanel({ accessKey }: { accessKey: string }) {
 
   const test = () =>
     run(async () => {
-      const { success, total } = await sendTestPush(accessKey);
+      const { success, total } = await sendTestPush();
       setMessage({ tone: "default", text: `테스트 알림을 보냈습니다. (${success}/${total}개 기기 성공)` });
     });
 

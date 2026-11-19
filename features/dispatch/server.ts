@@ -1,21 +1,21 @@
 import "server-only";
 
 import { buildBriefing } from "@/features/briefing";
-import { listCommuteSettings } from "@/features/commute/server";
-import { sendToAll } from "@/features/push/server";
+import { listAllCommuteSettings } from "@/features/commute/server";
+import { sendToUser } from "@/features/push/server";
 import { supabase } from "@/lib/supabase";
 
 import { runDispatch, type DispatchDeps } from "./dispatch";
 
 const deps: DispatchDeps = {
-  listSettings: listCommuteSettings,
-  async claim(kind, due) {
-    // The unique (kind, service_date) constraint makes a second send on the same day a no-op.
+  listSettings: listAllCommuteSettings,
+  async claim(userId, kind, due) {
+    // The unique (user_id, kind, service_date) constraint makes a second send on the same day a no-op.
     const { data, error } = await supabase()
       .from("dispatch_log")
       .upsert(
-        { kind, service_date: due.serviceDate, scheduled_for: due.scheduledFor.toISOString() },
-        { onConflict: "kind,service_date", ignoreDuplicates: true },
+        { user_id: userId, kind, service_date: due.serviceDate, scheduled_for: due.scheduledFor.toISOString() },
+        { onConflict: "user_id,kind,service_date", ignoreDuplicates: true },
       )
       .select("id");
     if (error) throw error;
@@ -29,7 +29,7 @@ const deps: DispatchDeps = {
     if (error) throw error;
   },
   buildBriefing,
-  send: sendToAll,
+  send: sendToUser,
 };
 
 export function dispatchNow(now = new Date()) {

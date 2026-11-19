@@ -11,11 +11,9 @@ import { Input } from "@/components/ui/input";
 import { DEFAULT_LEAD_MINUTES, KIND_LABEL, type CommuteKind, type CommuteSetting } from "@/features/commute";
 
 export function CommuteForm({
-  accessKey,
   kind,
   setting,
 }: {
-  accessKey: string;
   kind: CommuteKind;
   setting?: CommuteSetting;
 }) {
@@ -40,7 +38,6 @@ export function CommuteForm({
         </CardDescription>
       </CardHeader>
       <form action={action} aria-label={`${label} 설정`}>
-        <input type="hidden" name="key" value={accessKey} />
         <input type="hidden" name="kind" value={kind} />
         <CardContent>
           <FieldGroup>

@@ -18,9 +18,15 @@ function configure() {
   configured = true;
 }
 
-export async function saveSubscription(sub: StoredSubscription, userAgent: string | null): Promise<void> {
+/** Stores the device for this user. A device that signs in as someone else moves to that user. */
+export async function saveSubscription(
+  userId: string,
+  sub: StoredSubscription,
+  userAgent: string | null,
+): Promise<void> {
   const { error } = await supabase().from("push_subscriptions").upsert({
     endpoint: sub.endpoint,
+    user_id: userId,
     p256dh: sub.keys.p256dh,
     auth: sub.keys.auth,
     user_agent: userAgent,
@@ -28,15 +34,18 @@ export async function saveSubscription(sub: StoredSubscription, userAgent: strin
   if (error) throw error;
 }
 
-export async function deleteSubscription(endpoint: string): Promise<void> {
-  const { error } = await supabase().from("push_subscriptions").delete().eq("endpoint", endpoint);
+export async function deleteSubscription(userId: string, endpoint: string): Promise<void> {
+  const { error } = await supabase().from("push_subscriptions").delete().eq("endpoint", endpoint).eq("user_id", userId);
   if (error) throw error;
 }
 
-/** Sends to every subscribed device; drops subscriptions the push service reports as gone. */
-export async function sendToAll(payload: PushPayload): Promise<{ success: number; total: number }> {
+/** Sends to every device of one user; drops subscriptions the push service reports as gone. */
+export async function sendToUser(userId: string, payload: PushPayload): Promise<{ success: number; total: number }> {
   configure();
-  const { data, error } = await supabase().from("push_subscriptions").select("endpoint, p256dh, auth");
+  const { data, error } = await supabase()
+    .from("push_subscriptions")
+    .select("endpoint, p256dh, auth")
+    .eq("user_id", userId);
   if (error) throw error;
   const subs = data as Array<{ endpoint: string; p256dh: string; auth: string }>;
 
@@ -52,7 +61,7 @@ export async function sendToAll(payload: PushPayload): Promise<{ success: number
   await Promise.all(
     results.map((r, i) => {
       const status = r.status === "rejected" ? (r.reason as { statusCode?: number })?.statusCode : undefined;
-      return status === 404 || status === 410 ? deleteSubscription(subs[i].endpoint) : undefined;
+      return status === 404 || status === 410 ? deleteSubscription(userId, subs[i].endpoint) : undefined;
     }),
   );
 
