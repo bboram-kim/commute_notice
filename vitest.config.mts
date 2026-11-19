@@ -4,7 +4,11 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   plugins: [react()],
   // tsconfig.json의 "@/*" 경로 별칭을 Vite가 직접 해석한다.
-  resolve: { tsconfigPaths: true },
+  resolve: {
+    tsconfigPaths: true,
+    // "server-only" throws outside the react-server condition; tests import server modules directly.
+    alias: { "server-only": new URL("./test/server-only-stub.ts", import.meta.url).pathname },
+  },
   test: {
     environment: "jsdom",
     setupFiles: ["./vitest.setup.ts"],
