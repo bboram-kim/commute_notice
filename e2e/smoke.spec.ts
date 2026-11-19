@@ -1,10 +1,9 @@
 import { expect, test } from "@playwright/test";
 
-test("홈 화면이 열리고 시작 안내 제목이 보인다", async ({ page }) => {
+test("접근 키 없이 열면 설정 내용이 보이지 않는다", async ({ page }) => {
   await page.goto("/");
 
-  await expect(page).toHaveTitle("Create Next App");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText(
-    "To get started"
-  );
+  await expect(page).toHaveTitle("출퇴근 알림");
+  await expect(page.getByText("접근 키가 붙은 주소가 필요합니다")).toBeVisible();
+  await expect(page.getByRole("form")).toHaveCount(0);
 });
