@@ -42,7 +42,11 @@ export function PushPanel() {
     navigator.serviceWorker
       .register("/sw.js", { scope: "/", updateViaCache: "none" })
       .then((reg) => reg.pushManager.getSubscription())
-      .then(setSubscription)
+      .then(async (sub) => {
+        // A device that already has a subscription belongs to whoever is signed in now.
+        if (sub) await subscribePush(JSON.parse(JSON.stringify(sub)));
+        setSubscription(sub);
+      })
       .catch((e) => setMessage({ tone: "destructive", text: `서비스 워커를 등록하지 못했습니다: ${e}` }));
   }, [support]);
 
