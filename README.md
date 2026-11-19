@@ -28,12 +28,15 @@ bun dev
 | `DATA_GO_KR_SERVICE_KEY` | 공공데이터포털 일반 인증키(Decoding). 서울 버스·기상청 단기예보 공용 |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase 프로젝트 URL |
 | `SUPABASE_SECRET_KEY` | Supabase secret 키(`sb_secret_...`) 또는 `service_role` 키. 서버에서만 사용 |
-| `APP_SECRET` | 설정 화면·위젯 JSON을 여는 비밀 키. `/?key=<APP_SECRET>`로 접속 |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase 공개용 키(`sb_publishable_...`). 브라우저 로그인 세션에 사용 |
+| `SIGNUP_INVITE_CODE` | 가입할 때 입력해야 하는 초대 코드 |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | 웹 푸시 VAPID 키. `bunx web-push generate-vapid-keys`로 생성 |
 | `VAPID_SUBJECT` | `mailto:` 연락처 |
 | `CRON_SECRET` | `pg_cron`이 `/api/dispatch`를 부를 때 쓰는 Bearer 값 |
 
-DB는 Supabase SQL Editor에서 `supabase/migrations/20261119000000_commute_notice.sql`을 실행해 만들고, 배포 후 `supabase/cron-dispatch.sql`의 자리표시자를 바꿔 실행하면 매분 발송 확인이 시작됩니다. 출시 후 점검은 `bun docs/specs/commute-departure-notice/check-send-timeliness.ts`로 합니다.
+로그인은 Supabase Auth 이메일+비밀번호이고, 가입은 서버가 초대 코드를 확인한 뒤 관리자 권한으로 계정을 만듭니다. 그래서 Supabase 대시보드 Authentication > Sign In / Providers에서 **Allow new users to sign up을 끄고**, Email 로그인은 켜 두며 **Confirm email은 끕니다**.
+
+DB는 Supabase SQL Editor에서 `supabase/migrations/`의 SQL을 파일 이름 순서대로 실행해 만들고(두 번째 파일은 기존 1인용 데이터를 지우고 사용자별 테이블로 바꿉니다), 배포 후 `supabase/cron-dispatch.sql`의 자리표시자를 바꿔 실행하면 매분 발송 확인이 시작됩니다. 출시 후 점검은 `bun docs/specs/commute-departure-notice/check-send-timeliness.ts`로 합니다.
 
 ## 스크립트
 

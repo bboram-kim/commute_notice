@@ -1,12 +1,17 @@
 "use server";
 
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
+import { createAccount, regenerateWidgetToken } from "@/features/accounts/server";
+import { parseSignupForm } from "@/features/accounts/signup";
 import { fetchStation, findRoute } from "@/features/bus";
 import { KIND_LABEL, parseCommuteForm } from "@/features/commute";
 import { saveCommuteSetting } from "@/features/commute/server";
-import { deleteSubscription, saveSubscription, sendToAll, type StoredSubscription } from "@/features/push/server";
-import { isValidKey } from "@/lib/access";
+import { deleteSubscription, saveSubscription, sendToUser, type StoredSubscription } from "@/features/push/server";
+import { currentUser, sessionClient } from "@/lib/auth";
+
+export type AuthState = { error?: string; email?: string };
 
 export type SaveState =
   | { status: "idle" }
@@ -16,10 +21,54 @@ export type SaveState =
 /** Submitted values, echoed back so the form keeps them after React resets it. */
 export type FormValues = Partial<Record<"departureTime" | "arsId" | "routeName" | "leadMinutes", string>>;
 
-const UNAUTHORIZED = "접근 키가 올바르지 않습니다.";
+const LOGIN_REQUIRED = "로그인이 필요합니다. 페이지를 새로고침해 다시 로그인하세요.";
+
+async function requireUserId(): Promise<string> {
+  const user = await currentUser();
+  if (!user) throw new Error(LOGIN_REQUIRED);
+  return user.id;
+}
+
+async function signIn(email: string, password: string): Promise<string | null> {
+  const { error } = await (await sessionClient()).auth.signInWithPassword({ email, password });
+  return error ? "이메일 또는 비밀번호가 올바르지 않습니다." : null;
+}
+
+export async function signUp(_prev: AuthState, form: FormData): Promise<AuthState> {
+  const parsed = parseSignupForm(form, process.env.SIGNUP_INVITE_CODE);
+  const email = String(form.get("email") ?? "");
+  if (!parsed.ok) return { error: parsed.error, email };
+
+  const created = await createAccount(parsed.value.email, parsed.value.password);
+  if (!created.ok) {
+    return {
+      error:
+        created.reason === "exists"
+          ? "이미 가입한 이메일입니다. 로그인해 주세요."
+          : "가입하지 못했습니다. 잠시 후 다시 시도하세요.",
+      email,
+    };
+  }
+  const error = await signIn(parsed.value.email, parsed.value.password);
+  if (error) return { error, email };
+  redirect("/");
+}
+
+export async function logIn(_prev: AuthState, form: FormData): Promise<AuthState> {
+  const email = String(form.get("email") ?? "").trim().toLowerCase();
+  const error = await signIn(email, String(form.get("password") ?? ""));
+  if (error) return { error, email };
+  redirect("/");
+}
+
+export async function logOut(): Promise<void> {
+  await (await sessionClient()).auth.signOut();
+  redirect("/");
+}
 
 export async function saveCommute(_prev: SaveState, form: FormData): Promise<SaveState> {
-  if (!isValidKey(form.get("key"))) return { status: "error", message: UNAUTHORIZED };
+  const user = await currentUser();
+  if (!user) return { status: "error", message: LOGIN_REQUIRED };
 
   const values: FormValues = Object.fromEntries(
     (["departureTime", "arsId", "routeName", "leadMinutes"] as const).map((k) => [k, String(form.get(k) ?? "")]),
@@ -44,7 +93,7 @@ export async function saveCommute(_prev: SaveState, form: FormData): Promise<Sav
     };
   }
 
-  await saveCommuteSetting({ ...input, stationName: station.stationName, location: station.location });
+  await saveCommuteSetting(user.id, { ...input, stationName: station.stationName, location: station.location });
   return {
     status: "saved",
     stationName: station.stationName,
@@ -53,17 +102,18 @@ export async function saveCommute(_prev: SaveState, form: FormData): Promise<Sav
   };
 }
 
-export async function subscribePush(key: string, sub: StoredSubscription): Promise<void> {
-  if (!isValidKey(key)) throw new Error(UNAUTHORIZED);
-  await saveSubscription(sub, (await headers()).get("user-agent"));
+export async function subscribePush(sub: StoredSubscription): Promise<void> {
+  await saveSubscription(await requireUserId(), sub, (await headers()).get("user-agent"));
 }
 
-export async function unsubscribePush(key: string, endpoint: string): Promise<void> {
-  if (!isValidKey(key)) throw new Error(UNAUTHORIZED);
-  await deleteSubscription(endpoint);
+export async function unsubscribePush(endpoint: string): Promise<void> {
+  await deleteSubscription(await requireUserId(), endpoint);
 }
 
-export async function sendTestPush(key: string): Promise<{ success: number; total: number }> {
-  if (!isValidKey(key)) throw new Error(UNAUTHORIZED);
-  return sendToAll({ title: "테스트 알림", body: "출퇴근 알림이 이 기기에 잘 도착합니다." });
+export async function sendTestPush(): Promise<{ success: number; total: number }> {
+  return sendToUser(await requireUserId(), { title: "테스트 알림", body: "출퇴근 알림이 이 기기에 잘 도착합니다." });
+}
+
+export async function reissueWidgetToken(): Promise<string> {
+  return regenerateWidgetToken(await requireUserId());
 }

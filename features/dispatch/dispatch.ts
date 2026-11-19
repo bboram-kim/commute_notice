@@ -18,28 +18,33 @@ export function dueDeparture(setting: CommuteSetting, now: Date): Due | null {
 }
 
 export type DispatchDeps = {
-  listSettings: () => Promise<CommuteSetting[]>;
-  /** Reserves today's send for a commute; returns a log id, or null when it was already sent. */
-  claim: (kind: CommuteKind, due: Due) => Promise<number | null>;
+  listSettings: () => Promise<Array<{ userId: string; setting: CommuteSetting }>>;
+  /** Reserves today's send for a user's commute; returns a log id, or null when it was already sent. */
+  claim: (userId: string, kind: CommuteKind, due: Due) => Promise<number | null>;
   record: (logId: number, result: { success: number; total: number }) => Promise<void>;
   buildBriefing: typeof buildBriefing;
-  send: (payload: { title: string; body: string }) => Promise<{ success: number; total: number }>;
+  send: (userId: string, payload: { title: string; body: string }) => Promise<{ success: number; total: number }>;
 };
 
-export type DispatchResult = { kind: CommuteKind; success: number; total: number };
+export type DispatchResult = { userId: string; kind: CommuteKind; success: number; total: number };
 
 export async function runDispatch(now: Date, deps: DispatchDeps): Promise<DispatchResult[]> {
-  const settings = await deps.listSettings();
+  const all = await deps.listSettings();
   const results: DispatchResult[] = [];
-  for (const setting of settings) {
+  for (const { userId, setting } of all) {
     const due = dueDeparture(setting, now);
     if (!due) continue;
-    const logId = await deps.claim(setting.kind, due);
-    if (logId === null) continue;
-    const briefing = await deps.buildBriefing(setting, due.departure, now);
-    const sent = await deps.send(formatNotification(briefing));
-    await deps.record(logId, sent);
-    results.push({ kind: setting.kind, ...sent });
+    // One user's failure must not stop the others (AC10).
+    try {
+      const logId = await deps.claim(userId, setting.kind, due);
+      if (logId === null) continue;
+      const briefing = await deps.buildBriefing(setting, due.departure, now);
+      const sent = await deps.send(userId, formatNotification(briefing));
+      await deps.record(logId, sent);
+      results.push({ userId, kind: setting.kind, ...sent });
+    } catch (e) {
+      console.error(`dispatch failed for ${userId}/${setting.kind}`, e);
+    }
   }
   return results;
 }

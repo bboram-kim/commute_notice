@@ -1,9 +1,9 @@
 import { expect, test } from "@playwright/test";
 
-test("접근 키 없이 열면 설정 내용이 보이지 않는다", async ({ page }) => {
+test("로그인하지 않으면 설정 대신 로그인 화면이 보인다", async ({ page }) => {
   await page.goto("/");
 
   await expect(page).toHaveTitle("출퇴근 알림");
-  await expect(page.getByText("접근 키가 붙은 주소가 필요합니다")).toBeVisible();
-  await expect(page.getByRole("form")).toHaveCount(0);
+  await expect(page.getByRole("form", { name: "로그인" })).toBeVisible();
+  await expect(page.getByRole("form", { name: "출근 설정" })).toHaveCount(0);
 });

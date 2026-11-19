@@ -17,7 +17,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "출퇴근 알림",
-  description: "출발 시각 전에 날씨와 버스 도착 예정 시각을 알려 주는 개인용 알림",
+  description: "출발 시각 전에 날씨와 버스 도착 예정 시각을 알려 주는 알림",
+  appleWebApp: { capable: true, title: "출퇴근 알림", statusBarStyle: "default" },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

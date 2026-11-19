@@ -86,6 +86,7 @@
 ## Setup before implementation
 
 - Supabase 대시보드 Authentication에서 Email 로그인을 켜고 "Confirm email"을 끈다 — 인증 메일 없이 가입하기 위해(AC2). 완료 조건: Authentication > Sign In / Providers에서 Email이 켜져 있고 Confirm email이 꺼져 있다.
+- Supabase 대시보드 Authentication에서 "Allow new users to sign up"을 끈다 — 공개 키로 가입 API를 직접 불러 초대 코드를 건너뛰지 못하게 하기 위해(AC3). 계정은 서버가 관리자 권한으로 만든다. 완료 조건: 그 토글이 꺼져 있고, 공개 키로 가입 API를 직접 호출하면 가입이 거절된다.
 - 초대 코드를 정해 Vercel 환경변수(예: `SIGNUP_INVITE_CODE`)에 넣는다 — 가입 제한(AC3). 완료 조건: Vercel 프로젝트 Environment Variables 목록에 해당 변수가 Production과 Preview에 있다. (값은 대화나 문서에 적지 않는다.)
 - 브라우저에서 쓸 Supabase 공개용 키(`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`)가 Vercel 환경변수에 있다 — 브라우저 로그인 세션(AC4, AC5). 완료 조건: Vercel 환경변수 목록에 있고, Supabase 대시보드의 API Keys 공개용 키와 같은 값이다.
 
